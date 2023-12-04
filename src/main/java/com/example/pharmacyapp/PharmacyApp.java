@@ -28,22 +28,18 @@ public class PharmacyApp extends Application {
     private ObservableList<Medicine> pharmacyInventory;
     private TableView<Medicine> medicineTableView;
     private TableView<Order> orderHistoryTableView;
-    private ObservableList<Order> orderHistory = FXCollections.observableArrayList();
     private ObservableList<Medicine> cart = FXCollections.observableArrayList();
     public static void main(String[] args) { launch(args);}
     @Override
     public void start(Stage primaryStage) {
-
         Stage authStage = new Stage();
         authStage.setTitle("User Sign Up");
         GridPane authGridPane = createAuthGridPane(authStage);
-        Scene authScene = new Scene(authGridPane, 500, 350);
+        Scene authScene = new Scene(authGridPane, 350, 350);
         authStage.setScene(authScene);
         authStage.show();
     }
-
     public class BackgroundUtil {
-
         public static void setGridPaneBackground(GridPane gridPane, String imagePath) {
             // Load the background image
             Image backgroundImage = new Image(BackgroundUtil.class.getResourceAsStream(imagePath));
@@ -56,7 +52,6 @@ public class PharmacyApp extends Application {
                     BackgroundPosition.DEFAULT,
                     BackgroundSize.DEFAULT
             );
-
             // Set the background for the GridPane
             gridPane.setBackground(new Background(background));
         }
@@ -64,63 +59,64 @@ public class PharmacyApp extends Application {
 
     private GridPane createAuthGridPane(Stage authStage) {
         GridPane gridPane = new GridPane();
-        gridPane.setVgap(15);
+        gridPane.setVgap(10);
         gridPane.setHgap(15);
         gridPane.setPadding(new Insets(20, 20, 20, 20));
 
         BackgroundUtil.setGridPaneBackground(gridPane, "/background.jpg");
 
-        Text title = new Text("Welcome to Pharmacy App - Sign Up");
-        title.setFont(new Font("Times new roman", 20));
-        Label nameLabel = new Label("Full Name:");
-        Label addressLabel = new Label("Address:");
+        Text title = new Text("Sign Up");
+        title.setFont(new Font("Times new roman", 30));
+        Label nameLabel = new Label("Name:");
+        Label emailLabel = new Label("Email:");
         Label phoneNumberLabel = new Label("Phone Number:");
-        Label usernameLabel = new Label("Username:");
-        Label passwordLabel = new Label("Password:");
+        Label addressLabel = new Label("Address:");
+        Label passwordLabel = new Label("Password");
+        Label confirmPasswordLabel = new Label("Confirm Password");
 
         TextField nameTextField = new TextField();
-        TextField addressTextField = new TextField();
+        TextField emailTextField = new TextField();
         TextField phoneNumberTextField = new TextField();
-        TextField usernameTextField = new TextField();
-        PasswordField passwordField = new PasswordField();
+        TextField addressTextField = new TextField();
+        PasswordField passwordTextField = new PasswordField();
+        PasswordField confirmPasswordTextField = new PasswordField();
 
         gridPane.add(title, 0, 0, 2, 1);
         gridPane.add(nameLabel, 0, 1);
         gridPane.add(nameTextField, 1, 1);
-        gridPane.add(addressLabel, 0, 2);
-        gridPane.add(addressTextField, 1, 2);
+        gridPane.add(emailLabel, 0, 2);
+        gridPane.add(emailTextField, 1, 2);
         gridPane.add(phoneNumberLabel, 0, 3);
         gridPane.add(phoneNumberTextField, 1, 3);
-        gridPane.add(usernameLabel, 0, 4);
-        gridPane.add(usernameTextField, 1, 4);
+        gridPane.add(addressLabel, 0, 4);
+        gridPane.add(addressTextField, 1, 4);
         gridPane.add(passwordLabel, 0, 5);
-        gridPane.add(passwordField, 1, 5);
+        gridPane.add(passwordTextField, 1, 5);
+        gridPane.add(confirmPasswordLabel, 0, 6);
+        gridPane.add(confirmPasswordTextField, 1, 6);
 
-        Button loginButton = new Button("Login");
+        Button signUpButton = new Button("Sign Up");
         Button exitButton = new Button("Exit");
         HBox hBox = new HBox();
         hBox.setSpacing(10);
         hBox.setAlignment(Pos.CENTER_RIGHT);
-        hBox.getChildren().add(loginButton);
+        hBox.getChildren().add(signUpButton);
         hBox.getChildren().add(exitButton);
 
-        gridPane.add(hBox, 1, 6);
-        exitButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                authStage.close();
-                Platform.exit();
-            }
+        gridPane.add(hBox, 1, 7);
+        exitButton.setOnAction(e -> {
+            authStage.close();
+            Platform.exit();
         });
 
-        loginButton.setOnAction(e -> {
+        signUpButton.setOnAction(e -> {
             String fullName = nameTextField.getText();
-            String address = addressTextField.getText();
+            String email= emailTextField.getText();
             String phoneNumber = phoneNumberTextField.getText();
-            String username = usernameTextField.getText();
-            String password = passwordField.getText();
+            String address = addressTextField.getText();
+            String password = passwordTextField.getText();
+            String confirmPassword = confirmPasswordTextField.getText();
 
-            // Create a new user or store the user information as needed
             user = new User(fullName, address, phoneNumber);
             authStage.close();
 
@@ -136,16 +132,16 @@ public class PharmacyApp extends Application {
         medicineListStage.setTitle("Medicine List and Search");
 
         pharmacyInventory = FXCollections.observableArrayList(
-                new Medicine("Panadol", 01, "Fever and Pain Relief", 50.0, 100),
-                new Medicine("Neurofen", 02, "Headache and Inflammation", 120.0, 50),
-                new Medicine("Amoxilin", 03, "Antibiotic", 80.0, 30),
-                new Medicine("Ventolin", 04, "Asthma Inhaler", 150.0, 20),
-                new Medicine("Zyrtec", 05, "Allergy Relief", 60.0, 40),
-                new Medicine("Aspirin", 06, "Pain and Inflammation", 30.0, 90),
-                new Medicine("Lipitor", 7, "Cholesterol Control", 80.0, 25),
+                new Medicine("Panadol", 1, "Fever and Pain Relief", 50.0, 20),
+                new Medicine("Neurofen", 2, "Headache and Inflammation", 120.0, 50),
+                new Medicine("Amoxilin", 3, "Antibiotic", 80.0, 30),
+                new Medicine("Ventolin", 4, "Asthma Inhaler", 150.0, 25),
+                new Medicine("Zyrtec", 5, "Allergy Relief", 60.0, 40),
+                new Medicine("Aspirin", 6, "Pain and Inflammation", 30.0, 15),
+                new Medicine("Lipitor", 7, "Cholesterol Control", 80.0, 32),
                 new Medicine("Prozac", 8, "Antidepressant", 75.0, 35),
                 new Medicine("Nexium", 9, "Acid Reflux Relief", 110.0, 15),
-                new Medicine("Synthroid", 10, "Thyroid Medication", 40.0, 50)
+                new Medicine("Synthroid", 10, "Thyroid Medication", 40.0, 24)
         );
 
         GridPane gridPane = new GridPane();
@@ -172,9 +168,8 @@ public class PharmacyApp extends Application {
         TableColumn<Medicine, Integer> quantityColumn = new TableColumn<>("Quantity");
         quantityColumn.setCellValueFactory(new PropertyValueFactory<>("selectedQuantity"));
 
-        quantityColumn.setCellFactory(tc -> new TableCell<>() {
+        quantityColumn.setCellFactory(c -> new TableCell<>() {
             private final Spinner<Integer> quantitySpinner = new Spinner<>(1, Integer.MAX_VALUE, 1);
-
             {
                 quantitySpinner.setEditable(true);
                 quantitySpinner.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -207,7 +202,7 @@ public class PharmacyApp extends Application {
         priceColumn.setPrefWidth(0.2 * 600);
         quantityColumn.setPrefWidth(0.2 * 600);
 
-        medicineTableView.setPrefWidth(650);
+        medicineTableView.setPrefWidth(610);
         medicineTableView.setPrefHeight(350);
 
         // Create a ListView to display medicine names, prices, and quantities
@@ -340,6 +335,8 @@ public class PharmacyApp extends Application {
         placeOrderButton.setOnAction(e -> {
             user.placeOrder();
             cart.clear();
+            Label order= new Label("Order is Placed");
+            order.setFont(new Font("Times new roman", 15));
         });
 
         Button backButton = new Button("Back");
@@ -382,7 +379,7 @@ public class PharmacyApp extends Application {
         TableView<Medicine> cartTableView = new TableView<>();
         orderHistoryTableView = new TableView<>();
 
-        TableColumn<Order, Integer> orderIdColumn = new TableColumn<>("Order ID");
+        TableColumn<Order, Integer> orderIdColumn = new TableColumn<>("Idd");
         orderIdColumn.setCellValueFactory(new PropertyValueFactory<>("orderId"));
 
         TableColumn<Order, String> orderNameColumn = new TableColumn<>("User Name");
@@ -397,12 +394,12 @@ public class PharmacyApp extends Application {
         orderHistoryTableView.getColumns().addAll(orderIdColumn, orderNameColumn, orderDateColumn, totalPriceColumn);
         orderHistoryTableView.setItems(orderHistoryObservable);
 
-        orderIdColumn.setPrefWidth(0.1 * 500);
-        orderNameColumn.setPrefWidth(0.2 * 500);
-        orderDateColumn.setPrefWidth(0.4 * 500);
-        totalPriceColumn.setPrefWidth(0.3 * 500);
+        orderIdColumn.setPrefWidth(0.1 * 450);
+        orderNameColumn.setPrefWidth(0.2 * 450);
+        orderDateColumn.setPrefWidth(0.4 * 450);
+        totalPriceColumn.setPrefWidth(0.3 * 450);
 
-        orderHistoryTableView.setPrefWidth(500);
+        orderHistoryTableView.setPrefWidth(450);
         orderHistoryTableView.setPrefHeight(200);
 
         Button closeButton = new Button("Close");
@@ -412,10 +409,10 @@ public class PharmacyApp extends Application {
         title.setFont(new Font("Times new roman", 20));
 
         gridPane.add(title, 0, 0, 2, 1); // Heading
-        gridPane.add(orderHistoryTableView, 0, 1, 2, 1); // Display order history table
+        gridPane.add(orderHistoryTableView, 0, 1, 2, 1);
         gridPane.add(closeButton, 0, 2, 2, 1);
 
-        Scene orderHistoryScene = new Scene(gridPane, 600, 300); // Adjust the scene height
+        Scene orderHistoryScene = new Scene(gridPane, 500, 300);
 
         orderHistoryStage.setScene(orderHistoryScene);
         orderHistoryStage.show();
@@ -428,5 +425,4 @@ public class PharmacyApp extends Application {
         }
         return totalCartPrice;
     }
-
   }
