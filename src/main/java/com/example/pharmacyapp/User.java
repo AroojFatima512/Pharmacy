@@ -15,19 +15,21 @@ public class User {
     private ObservableList<Order> orderHistoryObservable = FXCollections.observableArrayList();
     private ObservableList<Medicine> cartObservable = FXCollections.observableArrayList();
 
-    public ObservableList<Medicine> getCartObservable() {
-        return cartObservable;
-    }
-    public ObservableList<Order> getOrderHistoryObservable() {
-        return orderHistoryObservable;
-    }
     public User(String name, String address, String contactInfo) {
         this.name = name;
         this.address = address;
         this.contactInfo = contactInfo;
-        this.cart = new ArrayList<>(); // Initialize the cart list
+        this.cart = new ArrayList<>();
         this.orderHistory = new ArrayList<>();
         this.orderHistoryObservable = FXCollections.observableArrayList();
+    }
+
+    public ObservableList<Medicine> getCartObservable() {
+        return cartObservable;
+    }
+
+    public ObservableList<Order> getOrderHistoryObservable() {
+        return orderHistoryObservable;
     }
 
     public static List<Medicine> getCart() {
@@ -81,15 +83,22 @@ public class User {
     }
 
     public void placeOrder() {
+        // Check if the cart is not empty
         if (!cart.isEmpty()) {
+            // Create a new Order using the current user and the items in the cart
             Order newOrder = new Order(this, cart);
+
+            // Add the new order to the order history
             orderHistory.add(newOrder);
-            orderHistoryObservable.setAll(orderHistory); // Add the order to the observable list
+
+            // Update the order history observable list
+            orderHistoryObservable.setAll(orderHistory);
             cart.clear();
             System.out.println("Order is placed");
         } else {
             System.out.println("Cart is empty. Add items to the cart before placing an order.");
         }
     }
+
 }
 

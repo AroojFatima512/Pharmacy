@@ -216,35 +216,46 @@ public class PharmacyApp extends Application {
         TextField searchTextField = new TextField();
         searchTextField.setPromptText("Search Medicine");
 
-        Button searchButton= new Button("Search");
+        Button searchButton = new Button("Search");
         searchButton.setOnAction(e -> {
+            // Get the search text from the TextField and trim leading/trailing whitespaces
             String searchText = searchTextField.getText().trim().toLowerCase();
 
+            // Check if the search text is not empty
             if (!searchText.isEmpty()) {
+                // Create an ObservableList to store the search results
                 ObservableList<Medicine> searchResult = FXCollections.observableArrayList();
 
+                // Iterate through the pharmacyInventory to find medicines matching the search criteria
                 for (Medicine medicine : pharmacyInventory) {
                     if (medicine.getName().toLowerCase().contains(searchText)) {
+                        // If the medicine name contains the search text, add it to the search result list
                         searchResult.add(medicine);
                     }
                 }
 
+                // Set the TableView to display the search results
                 medicineTableView.setItems(searchResult);
             } else {
-                // If the search text is empty, show the entire inventory
+                // If the search text is empty, show the entire inventory in the TableView
                 medicineTableView.setItems(pharmacyInventory);
             }
         });
 
         Button addToCartButton = new Button("Add to Cart");
         addToCartButton.setOnAction(e -> {
+            // Get the selected medicine from the medicineTableView
             Medicine selectedMedicine = medicineTableView.getSelectionModel().getSelectedItem();
+
+            // Check if a medicine is selected
             if (selectedMedicine != null) {
-                // Update the selected quantity in the cart
-                selectedMedicine.setSelectedQuantity(selectedMedicine.getSelectedQuantity());
+                // Update the cart with the selected medicine
                 cart.add(selectedMedicine);
+
+                // Print a message to the console indicating the added medicine and quantity
                 System.out.println("Added Medicine: Name: " + selectedMedicine.getName() +
                         " - Quantity: " + selectedMedicine.getSelectedQuantity());
+
                 // Update the cartTableView to reflect the changes in the cart
                 cartTableView.setItems(cart);
             }
@@ -263,7 +274,7 @@ public class PharmacyApp extends Application {
             Stage authStage = new Stage();
             authStage.setTitle("User Authentication");
             GridPane authGridPane = createAuthGridPane(authStage);
-            Scene authScene = new Scene(authGridPane, 500, 350);
+            Scene authScene = new Scene(authGridPane, 350, 350);
             authStage.setScene(authScene);
             authStage.show();
         });
@@ -335,8 +346,6 @@ public class PharmacyApp extends Application {
         placeOrderButton.setOnAction(e -> {
             user.placeOrder();
             cart.clear();
-            Label order= new Label("Order is Placed");
-            order.setFont(new Font("Times new roman", 15));
         });
 
         Button backButton = new Button("Back");
