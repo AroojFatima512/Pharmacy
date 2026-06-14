@@ -6,6 +6,12 @@ The application was designed using a **mobile-first user experience approach**, 
 
 ---
 
+## 🎬 Project Demo
+
+A complete walkthrough demonstrating the application's features, ordering workflow, and user experience.
+
+▶️ Watch the full demo: https://youtu.be/YOUR_VIDEO_ID
+
 ## ✨ Key Features
 
 * 🔐 User authentication with sign up and login validation

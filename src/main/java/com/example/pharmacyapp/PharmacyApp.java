@@ -91,6 +91,9 @@ public class PharmacyApp extends Application {
                         try {
                             o.setOrderDate(new java.util.Date(Long.parseLong(parts[3])));
                         } catch(Exception e) {}
+                        try {
+                            o.setTotalPrice(Double.parseDouble(parts[4]));
+                        } catch(Exception e) {}
                         u.getOrderHistoryObservable().add(o);
                     }
                 } else if (parts[0].equals("ADDRESS") && parts.length >= 3) {
@@ -1809,11 +1812,13 @@ public class PharmacyApp extends Application {
                 return;
             }
             
+            double finalDiscountedTotal = calculateTotalCartPrice() * (1.0 - discountMultiplier);
             user.placeOrder();
             Order lastOrder = null;
             if (!user.getOrderHistoryObservable().isEmpty()) {
                 lastOrder = user.getOrderHistoryObservable().get(user.getOrderHistoryObservable().size() - 1);
                 if (!isDelivery) lastOrder.setStatus("Pickup");
+                lastOrder.setTotalPrice(finalDiscountedTotal);
                 saveOrder(lastOrder);
             }
             showSuccessAndDeliveryDetails(lastOrder, isDelivery, savedDeliveryInfo, mainStage);
@@ -2235,8 +2240,10 @@ public class PharmacyApp extends Application {
                 savedDeliveryInfo = savedDeliveryInfo.substring(0, savedDeliveryInfo.lastIndexOf("\nPayment: ")) + "\nPayment: " + paymentGroup.getSelectedToggle().getUserData();
             }
             
+            double finalDiscountedTotal = calculateTotalCartPrice() * (1.0 - discountMultiplier);
             user.placeOrder();
             Order lastOrder = user.getOrderHistoryObservable().get(user.getOrderHistoryObservable().size() - 1);
+            lastOrder.setTotalPrice(finalDiscountedTotal);
             saveOrder(lastOrder);
             showSuccessAndDeliveryDetails(lastOrder, true, savedDeliveryInfo, mainStage);
         });

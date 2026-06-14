@@ -12,7 +12,13 @@ public class Order {
     private String status;
 
     public Order(User user, List<Medicine> medicines) {
-        this.orderId = user.getOrderHistoryObservable().size() + 1;
+        int maxId = 0;
+        for (Order o : user.getOrderHistoryObservable()) {
+            if (o.getOrderId() > maxId) {
+                maxId = o.getOrderId();
+            }
+        }
+        this.orderId = maxId + 1;
         this.orderDate = new Date();
         this.user = user;
         this.medicines = new java.util.ArrayList<>(medicines);
@@ -55,6 +61,10 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 
     public void setOrderDate(Date date) {
