@@ -284,7 +284,7 @@ public class PharmacyApp extends Application {
         desc.setFill(javafx.scene.paint.Color.web("#7f8c8d"));
 
         Button getStartedBtn = new Button("Get Started  →");
-        getStartedBtn.setStyle("-fx-background-color: #20b2aa; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 25px; -fx-cursor: hand;");
+        getStartedBtn.setStyle("-fx-background-color: #0070c0; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 25px; -fx-cursor: hand;");
         getStartedBtn.setPadding(new Insets(12, 35, 12, 35));
         getStartedBtn.setOnAction(e -> {
             splashStage.close();
@@ -306,7 +306,7 @@ public class PharmacyApp extends Application {
         // --- Right Side (Image/Graphic) ---
         ImageView imageView = new ImageView();
         try {
-            Image image = new Image(getClass().getResourceAsStream("/medicine_bottle.png"));
+            Image image = new Image(getClass().getResourceAsStream("/7.jfif"));
             imageView.setImage(image);
             imageView.setFitWidth(350);
             imageView.setPreserveRatio(true);
@@ -330,7 +330,7 @@ public class PharmacyApp extends Application {
     private VBox createFeatureBox(String icon, String title, String subtitle) {
         Text iconTxt = new Text(icon);
         iconTxt.setFont(javafx.scene.text.Font.font(24));
-        iconTxt.setFill(javafx.scene.paint.Color.web("#20b2aa"));
+        iconTxt.setFill(javafx.scene.paint.Color.web("#0070c0"));
         
         Text titleTxt = new Text(title);
         titleTxt.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 12));
@@ -549,8 +549,23 @@ public class PharmacyApp extends Application {
 
         card.getChildren().addAll(topCardBox, nameBox, emailBox, phoneBox, passBox, confPassBox, signUpButton, loginFlow, dividerBox, socialBox, secureBadge);
 
-        VBox formSide = new VBox(card);
-        formSide.setAlignment(Pos.CENTER);
+        Button backButton = new Button("Back");
+        backButton.setGraphic(getIcon("https://img.icons8.com/color/48/back.png", 16));
+        backButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 14px;");
+        backButton.setOnAction(e -> {
+            authStage.close();
+            showSplashScreen(new Stage());
+        });
+        
+        HBox topBar = new HBox(backButton);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(20, 0, 0, 20));
+
+        VBox formSideContent = new VBox(card);
+        formSideContent.setAlignment(Pos.CENTER);
+        VBox.setVgrow(formSideContent, Priority.ALWAYS);
+
+        VBox formSide = new VBox(topBar, formSideContent);
         formSide.setStyle("-fx-background-color: white;");
         formSide.setPrefWidth(550);
         HBox.setHgrow(formSide, Priority.ALWAYS);
@@ -710,13 +725,28 @@ public class PharmacyApp extends Application {
         // Add to card
         card.getChildren().addAll(topCardBox, emailBox, passBox, forgotBox, loginButton, signUpFlow, dividerBox, socialBox, secureBadge);
 
-        VBox rightSide = new VBox(card);
-        rightSide.setAlignment(Pos.CENTER);
+        Button backButton = new Button("Back");
+        backButton.setGraphic(getIcon("https://img.icons8.com/color/48/back.png", 16));
+        backButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 14px;");
+        backButton.setOnAction(e -> {
+            loginStage.close();
+            showSplashScreen(new Stage());
+        });
+        
+        HBox topBar = new HBox(backButton);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(20, 0, 0, 20));
+
+        VBox rightSideContent = new VBox(card);
+        rightSideContent.setAlignment(Pos.CENTER);
+        VBox.setVgrow(rightSideContent, Priority.ALWAYS);
+
+        VBox rightSide = new VBox(topBar, rightSideContent);
         rightSide.setStyle("-fx-background-color: white;");
         rightSide.setPrefWidth(550);
         HBox.setHgrow(rightSide, Priority.ALWAYS);
 
-        HBox mainLayout = new HBox(createAuthSideColumn("file:///C:/Users/COMSATS/.gemini/antigravity/brain/89aa6531-44ec-4845-8afc-7e867843d275/healthcare_login_illustration_1781375315586.png", false), rightSide);
+        HBox mainLayout = new HBox(createAuthSideColumn("/6.jfif", false), rightSide);
         mainLayout.setStyle("-fx-background-color: white;");
 
         // Actions
