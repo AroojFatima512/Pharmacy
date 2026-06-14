@@ -42,6 +42,21 @@ public class PharmacyApp extends Application {
         return System.getProperty("user.home") + "/pharmacy_users.txt";
     }
 
+    /** Seamless stage transition: positions newStage over oldStage, shows it,
+     *  then closes oldStage after the JavaFX rendering pulse completes. */
+    private void transitionTo(Stage newStage, Stage oldStage) {
+        if (oldStage != null && oldStage.isShowing()) {
+            newStage.setX(oldStage.getX());
+            newStage.setY(oldStage.getY());
+        }
+        newStage.show();
+        if (oldStage != null) {
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
+            pause.setOnFinished(ev -> oldStage.close());
+            pause.play();
+        }
+    }
+
     private void loadUsers() {
         userDatabase.clear();
         try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(getDbPath()))) {
@@ -171,7 +186,7 @@ public class PharmacyApp extends Application {
         HBox iconBox = new HBox(icon);
         iconBox.setPadding(new Insets(0, 5, 0, 0));
 
-        textField.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+        textField.setStyle("-fx-background-color: transparent; -fx-text-fill: #2c3e50; -fx-prompt-text-fill: #aab0b8; -fx-padding: 0;");
         HBox.setHgrow(textField, Priority.ALWAYS);
 
         HBox inputBox = new HBox(iconBox, textField);
@@ -250,8 +265,8 @@ public class PharmacyApp extends Application {
         preloader.start();
     }
 
-    private void showSplashScreen(Stage splashStage) {
-        splashStage.setTitle("PharmaPlus - Welcome");
+    private void showSplashScreen(Stage mainStage) {
+        mainStage.setTitle("PharmaPlus - Welcome");
 
         // --- Left Side (Content) ---
         Text pharmaTop = new Text("Pharma");
@@ -287,8 +302,7 @@ public class PharmacyApp extends Application {
         getStartedBtn.setStyle("-fx-background-color: #0070c0; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-background-radius: 25px; -fx-cursor: hand;");
         getStartedBtn.setPadding(new Insets(12, 35, 12, 35));
         getStartedBtn.setOnAction(e -> {
-            splashStage.close();
-            showLoginStage();
+            showLoginStage(mainStage);
         });
 
         // Bottom Icons
@@ -323,8 +337,8 @@ public class PharmacyApp extends Application {
         mainLayout.setStyle("-fx-background-color: white;");
 
         Scene splashScene = new Scene(mainLayout, 1000, 600);
-        splashStage.setScene(splashScene);
-        splashStage.show();
+        mainStage.setScene(splashScene);
+        mainStage.show();
     }
 
     private VBox createFeatureBox(String icon, String title, String subtitle) {
@@ -421,7 +435,7 @@ public class PharmacyApp extends Application {
         return sideColumn;
     }
 
-    private HBox createAuthLayout(Stage authStage) {
+    private HBox createAuthLayout(Stage mainStage) {
         // Top Header
         Text pharmaTop = new Text("Pharma");
         pharmaTop.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 30));
@@ -553,8 +567,7 @@ public class PharmacyApp extends Application {
         backButton.setGraphic(getIcon("https://img.icons8.com/color/48/back.png", 16));
         backButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 14px;");
         backButton.setOnAction(e -> {
-            authStage.close();
-            showSplashScreen(new Stage());
+            showSplashScreen(mainStage);
         });
         
         HBox topBar = new HBox(backButton);
@@ -563,9 +576,15 @@ public class PharmacyApp extends Application {
 
         VBox formSideContent = new VBox(card);
         formSideContent.setAlignment(Pos.CENTER);
-        VBox.setVgrow(formSideContent, Priority.ALWAYS);
 
-        VBox formSide = new VBox(topBar, formSideContent);
+        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(formSideContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-control-inner-background: transparent;");
+        scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+
+        VBox formSide = new VBox(topBar, scrollPane);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
         formSide.setStyle("-fx-background-color: white;");
         formSide.setPrefWidth(550);
         HBox.setHgrow(formSide, Priority.ALWAYS);
@@ -574,8 +593,7 @@ public class PharmacyApp extends Application {
         mainLayout.setStyle("-fx-background-color: white;");
 
         loginLink.setOnMouseClicked(e -> {
-            authStage.close();
-            showLoginStage();
+            showLoginStage(mainStage);
         });
 
         signUpButton.setOnAction(e -> {
@@ -586,45 +604,43 @@ public class PharmacyApp extends Application {
             String confirmPassword = confirmPasswordTextField.getText();
 
             if (!isValidName(fullName)) {
-                showAlert(Alert.AlertType.ERROR, authStage, "Sign Up Error", "Name must contain only letters and spaces.");
+                showAlert(Alert.AlertType.ERROR, mainStage, "Sign Up Error", "Name must contain only letters and spaces.");
                 return;
             }
             if (!isValidEmail(email)) {
-                showAlert(Alert.AlertType.ERROR, authStage, "Sign Up Error", "Enter a valid email address.");
+                showAlert(Alert.AlertType.ERROR, mainStage, "Sign Up Error", "Enter a valid email address.");
                 return;
             }
             if (phoneNumber.length() != 11) {
-                showAlert(Alert.AlertType.ERROR, authStage, "Sign Up Error", "Phone number must be exactly 11 digits.");
+                showAlert(Alert.AlertType.ERROR, mainStage, "Sign Up Error", "Phone number must be exactly 11 digits.");
                 return;
             }
             if (password.length() < 8) {
-                showAlert(Alert.AlertType.ERROR, authStage, "Sign Up Error", "Password must be at least 8 characters.");
+                showAlert(Alert.AlertType.ERROR, mainStage, "Sign Up Error", "Password must be at least 8 characters.");
                 return;
             }
             if (!password.equals(confirmPassword)) {
-                showAlert(Alert.AlertType.ERROR, authStage, "Sign Up Error", "Passwords do not match.");
+                showAlert(Alert.AlertType.ERROR, mainStage, "Sign Up Error", "Passwords do not match.");
                 return;
             }
             
             for (User u : userDatabase) {
                 if (u.getEmail().equalsIgnoreCase(email)) {
-                    showAlert(Alert.AlertType.ERROR, authStage, "Sign Up Error", "This email is already registered! Please go back and Sign In instead.");
+                    showAlert(Alert.AlertType.ERROR, mainStage, "Sign Up Error", "This email is already registered! Please go back and Sign In instead.");
                     return;
                 }
             }
 
             User newUser = new User(fullName, "N/A", phoneNumber, email, password);
             saveUser(newUser);
-            authStage.close();
-            showLoginStage();
+            showLoginStage(mainStage);
         });
 
         return mainLayout;
     }
 
-    private void showLoginStage() {
-        Stage loginStage = new Stage();
-        loginStage.setTitle("Login");
+    private void showLoginStage(Stage mainStage) {
+        mainStage.setTitle("Login");
 
         // Main Login Card
         VBox card = new VBox(15);
@@ -729,8 +745,7 @@ public class PharmacyApp extends Application {
         backButton.setGraphic(getIcon("https://img.icons8.com/color/48/back.png", 16));
         backButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 14px;");
         backButton.setOnAction(e -> {
-            loginStage.close();
-            showSplashScreen(new Stage());
+            showSplashScreen(mainStage);
         });
         
         HBox topBar = new HBox(backButton);
@@ -767,28 +782,23 @@ public class PharmacyApp extends Application {
             }
 
             if (foundUser == null) {
-                showAlert(Alert.AlertType.ERROR, loginStage, "Login Error", "Invalid email or password.");
+                showAlert(Alert.AlertType.ERROR, mainStage, "Login Error", "Invalid email or password.");
                 return;
             }
-            loginStage.close();
             user = foundUser;
-            showMedicineListStage();
+            showMedicineListStage(mainStage);
         });
 
         signUpLink.setOnMouseClicked(e -> {
-            loginStage.close();
-            Stage authStage = new Stage();
-            authStage.setTitle("User Sign Up");
-            HBox authLayout = createAuthLayout(authStage);
+            mainStage.setTitle("User Sign Up");
+            HBox authLayout = createAuthLayout(mainStage);
             
             Scene authScene = new Scene(authLayout, 1000, 600);
-            authStage.setScene(authScene);
-            authStage.show();
+            mainStage.setScene(authScene);
         });
 
         Scene loginScene = new Scene(mainLayout, 1000, 600);
-        loginStage.setScene(loginScene);
-        loginStage.show();
+        mainStage.setScene(loginScene);
     }
 
     private boolean isValidName(String name) {
@@ -812,9 +822,8 @@ public class PharmacyApp extends Application {
         alert.showAndWait();
     }
 
-    private void showMedicineListStage() {
-        Stage medicineListStage = new Stage();
-        medicineListStage.setTitle("Medicine List and Search");
+    private void showMedicineListStage(Stage mainStage) {
+        mainStage.setTitle("Medicine List and Search");
 
         pharmacyInventory = FXCollections.observableArrayList(
                 new Medicine("Panadol", 1, "Fever and Pain Relief", 50.0, 20),
@@ -938,14 +947,14 @@ public class PharmacyApp extends Application {
         ScrollPane medicineScrollPane = new ScrollPane(centerWrapper);
         medicineScrollPane.setFitToWidth(true);
         medicineScrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        medicineScrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         medicineScrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-control-inner-background: transparent;");
 
         javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(medicineScrollPane);
         root.setStyle("-fx-background-image: url('/background.jpg'); -fx-background-size: cover;");
 
         Scene medicineListScene = new Scene(root, 1000, 600);
-        medicineListStage.setScene(medicineListScene);
-        medicineListStage.show();
+        mainStage.setScene(medicineListScene);
 
         // Handlers
         searchButton.setOnAction(e -> {
@@ -985,18 +994,15 @@ public class PharmacyApp extends Application {
         });
 
         backButton.setOnAction(e -> {
-            medicineListStage.close();
-            showLoginStage();
+            showLoginStage(mainStage);
         });
         
         nextButton.setOnAction(e -> {
-            medicineListStage.close();
-            showCartAndOrderPlacementStage(user.getOrderHistoryObservable());
+            showCartAndOrderPlacementStage(user.getOrderHistoryObservable(), mainStage);
         });
         
         viewHistoryBtn.setOnAction(e -> {
-            medicineListStage.close();
-            showOrderHistoryStage(user.getOrderHistoryObservable(), () -> showMedicineListStage());
+            showOrderHistoryStage(user.getOrderHistoryObservable(), (stageToClose) -> showMedicineListStage(stageToClose), mainStage);
         });
     }
 
@@ -1185,9 +1191,9 @@ public class PharmacyApp extends Application {
         fValue.setText("Rs. " + String.format("%.1f", total - (total * discountMultiplier)));
     }
 
-    private void showCartAndOrderPlacementStage(ObservableList<Order> orderHistoryObservable) {
-        Stage cartStage = new Stage();
-        cartStage.setTitle("Cart and Order Placement");
+    private void showCartAndOrderPlacementStage(ObservableList<Order> orderHistoryObservable, Stage mainStage) {
+        mainStage.setTitle("Cart and Order Placement");
+        discountMultiplier = 0.0;  // Reset discount for each new order
 
         // Header
         javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(40, 40, javafx.scene.paint.Color.web("#e3f2fd"));
@@ -1303,6 +1309,7 @@ public class PharmacyApp extends Application {
         ScrollPane cartScrollPane = new ScrollPane(centerWrapper);
         cartScrollPane.setFitToWidth(true);
         cartScrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        cartScrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         cartScrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-control-inner-background: transparent;");
 
         javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(cartScrollPane);
@@ -1310,24 +1317,20 @@ public class PharmacyApp extends Application {
 
         Scene cartScene = new Scene(root, 1000, 600);
 
-        cartStage.setScene(cartScene);
-        cartStage.show();
-
         // Handlers
         placeOrderButton.setOnAction(e -> {
-            cartStage.close();
-            showCheckoutStage(orderHistoryObservable, cartStage);
+            showCheckoutStage(orderHistoryObservable, mainStage, cartScene);
         });
 
         backButton.setOnAction(e -> {
-            cartStage.close();
-            showMedicineListStage();
+            showMedicineListStage(mainStage);
         });
+
+        mainStage.setScene(cartScene);
     }
 
-    private void showOrderHistoryStage(ObservableList<Order> orderHistoryObservable, Runnable backAction) {
-        Stage orderHistoryStage = new Stage();
-        orderHistoryStage.setTitle("Order History");
+    private void showOrderHistoryStage(ObservableList<Order> orderHistoryObservable, java.util.function.Consumer<Stage> backAction, Stage mainStage) {
+        mainStage.setTitle("Order History");
 
         // Header
         javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(40, 40, javafx.scene.paint.Color.web("#e3f2fd"));
@@ -1504,8 +1507,7 @@ public class PharmacyApp extends Application {
                     cancelBtn.setOnAction(e -> {
                         o.setStatus("Cancelled");
                         updateOrderInFile(o);
-                        orderHistoryStage.close();
-                        showOrderHistoryStage(orderHistoryObservable, backAction);
+                        showOrderHistoryStage(orderHistoryObservable, backAction, mainStage);
                     });
                     statusBox.getChildren().add(cancelBtn);
                 }
@@ -1525,8 +1527,7 @@ public class PharmacyApp extends Application {
         backBtn.setStyle("-fx-background-color: white; -fx-text-fill: #1976d2; -fx-font-weight: bold; -fx-border-color: #1976d2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
         backBtn.setPadding(new Insets(10, 20, 10, 20));
         backBtn.setOnAction(e -> {
-            orderHistoryStage.close();
-            if (backAction != null) backAction.run();
+            if (backAction != null) backAction.accept(mainStage);
         });
 
         Button logoutBtn = new Button("Logout");
@@ -1534,8 +1535,7 @@ public class PharmacyApp extends Application {
         logoutBtn.setStyle("-fx-background-color: #ffeef0; -fx-text-fill: #ff4757; -fx-font-weight: bold; -fx-border-color: #ffcdd2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
         logoutBtn.setPadding(new Insets(10, 20, 10, 20));
         logoutBtn.setOnAction(e -> {
-            orderHistoryStage.close();
-            showSplashScreen(new Stage());
+            showLoginStage(mainStage);
         });
 
         javafx.scene.layout.Region spacer = new javafx.scene.layout.Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -1551,6 +1551,7 @@ public class PharmacyApp extends Application {
         ScrollPane historyScrollPane = new ScrollPane(mainLayout);
         historyScrollPane.setFitToWidth(true);
         historyScrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        historyScrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         historyScrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-control-inner-background: transparent;");
 
         javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(historyScrollPane);
@@ -1558,13 +1559,11 @@ public class PharmacyApp extends Application {
 
         Scene orderHistoryScene = new Scene(root, 1000, 600);
 
-        orderHistoryStage.setScene(orderHistoryScene);
-        orderHistoryStage.show();
+        mainStage.setScene(orderHistoryScene);
     }
 
-    private void showCheckoutStage(ObservableList<Order> orderHistoryObservable, Stage cartStage) {
-        Stage checkoutStage = new Stage();
-        checkoutStage.setTitle("Place Order");
+    private void showCheckoutStage(ObservableList<Order> orderHistoryObservable, Stage mainStage, Scene cartScene) {
+        mainStage.setTitle("Place Order");
         deliveryDetailsSaved = false;
         savedDeliveryInfo = "";
 
@@ -1747,8 +1746,7 @@ public class PharmacyApp extends Application {
         enterDeliveryBtn.managedProperty().bind(enterDeliveryBtn.visibleProperty());
         
         enterDeliveryBtn.setOnAction(e -> {
-            checkoutStage.hide();
-            showDeliveryDetailsStage(checkoutStage);
+            showDeliveryDetailsStage(mainStage, mainStage.getScene());
         });
 
         // Action Buttons
@@ -1788,13 +1786,14 @@ public class PharmacyApp extends Application {
         ScrollPane scroll = new ScrollPane(centerWrapper);
         scroll.setFitToWidth(true);
         scroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-control-inner-background: transparent;");
 
         javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(scroll);
         root.setStyle("-fx-background-image: url('/background.jpg'); -fx-background-size: cover;");
 
-        Scene scene = new Scene(root, 1000, 650);
-        checkoutStage.setScene(scene);
+        Scene scene = new Scene(root, 1000, 600);
+        mainStage.setScene(scene);
         
         rb1.setSelected(true); // Default to Pickup
 
@@ -1817,21 +1816,19 @@ public class PharmacyApp extends Application {
                 if (!isDelivery) lastOrder.setStatus("Pickup");
                 saveOrder(lastOrder);
             }
-            checkoutStage.close();
-            showSuccessAndDeliveryDetails(checkoutStage, lastOrder, isDelivery, savedDeliveryInfo);
+            showSuccessAndDeliveryDetails(lastOrder, isDelivery, savedDeliveryInfo, mainStage);
         });
         
         viewHistoryBtn.setOnAction(e -> {
-            checkoutStage.close();
-            showOrderHistoryStage(orderHistoryObservable, () -> showCheckoutStage(orderHistoryObservable, cartStage));
+            showOrderHistoryStage(orderHistoryObservable, (stageToClose) -> showCheckoutStage(orderHistoryObservable, stageToClose, cartScene), mainStage);
         });
         
         backBtn.setOnAction(e -> {
-            checkoutStage.close();
-            cartStage.show();
+            mainStage.setTitle("Cart and Order Placement");
+            mainStage.setScene(cartScene);
         });
 
-        checkoutStage.show();
+        mainStage.setScene(scene);
     }
 
 
@@ -1875,9 +1872,8 @@ public class PharmacyApp extends Application {
         return card;
     }
 
-    private void showDeliveryDetailsStage(Stage parentStage) {
-        Stage stage = new Stage();
-        stage.setTitle("Delivery Details");
+    private void showDeliveryDetailsStage(Stage mainStage, Scene checkoutScene) {
+        mainStage.setTitle("Delivery Details");
         
         // 1. Top Header removed, moving Back to bottom
         
@@ -2089,7 +2085,12 @@ public class PharmacyApp extends Application {
                     if (i > 0 && i % 4 == 0) sb.append(" ");
                     sb.append(clean.charAt(i));
                 }
-                if (!newV.equals(sb.toString())) cardNum.setText(sb.toString());
+                if (!newV.equals(sb.toString())) {
+                    javafx.application.Platform.runLater(() -> {
+                        cardNum.setText(sb.toString());
+                        cardNum.positionCaret(sb.toString().length());
+                    });
+                }
             }
         });
         TextField expDate = createStyledTextField("DD/MM", null);
@@ -2103,14 +2104,14 @@ public class PharmacyApp extends Application {
                 boolean invalid = false;
                 if (clean.length() >= 2) {
                     try {
-                        int day = Integer.parseInt(clean.substring(0, 2));
-                        if (day < 1 || day > 31) invalid = true;
+                        int month = Integer.parseInt(clean.substring(0, 2));
+                        if (month < 1 || month > 12) invalid = true;
                     } catch (Exception ex) {}
                 }
                 if (clean.length() == 5) {
                     try {
-                        int month = Integer.parseInt(clean.substring(3, 5));
-                        if (month < 1 || month > 12) invalid = true;
+                        int year = Integer.parseInt(clean.substring(3, 5));
+                        if (year <= 26) invalid = true;
                     } catch (Exception ex) {}
                 }
                 
@@ -2121,7 +2122,13 @@ public class PharmacyApp extends Application {
                     expDate.setStyle("-fx-background-color: white; -fx-text-fill: #2c3e50; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8; -fx-border-color: #bdc3c7;");
                     invalidExp.setVisible(false);
                 }
-                if (!newV.equals(clean)) expDate.setText(clean);
+                if (!newV.equals(clean)) {
+                    final String finalClean = clean;
+                    javafx.application.Platform.runLater(() -> {
+                        expDate.setText(finalClean);
+                        expDate.positionCaret(finalClean.length());
+                    });
+                }
             }
         });
         TextField cvv = createStyledTextField("CVV", null);
@@ -2223,12 +2230,15 @@ public class PharmacyApp extends Application {
                 Alert a = new Alert(Alert.AlertType.ERROR); a.setHeaderText(null); a.setContentText("Cart is empty!"); a.show();
                 return;
             }
+            
+            if (savedDeliveryInfo != null && savedDeliveryInfo.contains("\nPayment: ")) {
+                savedDeliveryInfo = savedDeliveryInfo.substring(0, savedDeliveryInfo.lastIndexOf("\nPayment: ")) + "\nPayment: " + paymentGroup.getSelectedToggle().getUserData();
+            }
+            
             user.placeOrder();
             Order lastOrder = user.getOrderHistoryObservable().get(user.getOrderHistoryObservable().size() - 1);
             saveOrder(lastOrder);
-            stage.close();
-            if (parentStage != null) parentStage.close();
-            showSuccessAndDeliveryDetails(null, lastOrder, true, savedDeliveryInfo);
+            showSuccessAndDeliveryDetails(lastOrder, true, savedDeliveryInfo, mainStage);
         });
         
         Button backBtn = new Button("Back");
@@ -2236,7 +2246,10 @@ public class PharmacyApp extends Application {
         backBtn.setStyle("-fx-background-color: white; -fx-text-fill: #1976d2; -fx-font-weight: bold; -fx-border-color: #bdc3c7; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
         backBtn.setPrefWidth(150);
         backBtn.setPadding(new Insets(15, 0, 15, 0));
-        backBtn.setOnAction(e -> { stage.close(); parentStage.show(); });
+        backBtn.setOnAction(e -> { 
+            mainStage.setTitle("Place Order");
+            mainStage.setScene(checkoutScene); 
+        });
         
         confirmBtn.setPrefWidth(200);
         javafx.scene.layout.Region spacer = new javafx.scene.layout.Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -2256,23 +2269,21 @@ public class PharmacyApp extends Application {
         ScrollPane scroll = new ScrollPane(centerWrapper);
         scroll.setFitToWidth(true);
         scroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-control-inner-background: transparent;");
         
         javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(scroll);
         root.setStyle("-fx-background-image: url('/background.jpg'); -fx-background-size: cover;");
         
-        Scene scene = new Scene(root, 1000, 650);
+        Scene scene = new Scene(root, 1000, 600);
         scene.getStylesheets().add("data:text/css,.date-picker-popup * { -fx-text-fill: black !important; }");
         try { scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm()); } catch (Exception ignored) {}
-        stage.setScene(scene);
         
-        stage.setOnCloseRequest(e -> parentStage.show());
-        stage.show();
+        mainStage.setScene(scene);
     }
 
-    private void showSuccessAndDeliveryDetails(Stage parentStage, Order lastOrder, boolean isDelivery, String deliveryInfo) {
-        Stage successStage = new Stage();
-        successStage.setTitle("Order Status");
+    private void showSuccessAndDeliveryDetails(Order lastOrder, boolean isDelivery, String deliveryInfo, Stage mainStage) {
+        mainStage.setTitle("Order Status");
 
         // Main Layout (StackPane for background image)
         javafx.scene.layout.StackPane rootPane = new javafx.scene.layout.StackPane();
@@ -2364,28 +2375,46 @@ public class PharmacyApp extends Application {
                 orderCard.getChildren().add(itemRow);
             }
             
+            boolean isCardPaid = deliveryInfo != null && deliveryInfo.contains("Credit / Debit Card");
+            boolean isCod = deliveryInfo != null && deliveryInfo.contains("Cash on Delivery");
+
+            if (isCardPaid || isCod) {
+                HBox payRow = new HBox(10);
+                payRow.setAlignment(Pos.CENTER_LEFT);
+                payRow.setPadding(new Insets(5, 15, 5, 15));
+                Text pLabel = new Text("Payment Method:"); pLabel.setFont(javafx.scene.text.Font.font("System", 14)); pLabel.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+                javafx.scene.layout.Region spacer2 = new javafx.scene.layout.Region(); HBox.setHgrow(spacer2, Priority.ALWAYS);
+                Text pValue = new Text(isCardPaid ? "Card" : "Cash on Delivery");
+                pValue.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 14));
+                pValue.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+                payRow.getChildren().addAll(pLabel, spacer2, pValue);
+                orderCard.getChildren().add(payRow);
+            }
+
             HBox totalRow = new HBox(10);
             totalRow.setAlignment(Pos.CENTER_LEFT);
             totalRow.setStyle("-fx-background-color: #e8f5e9; -fx-background-radius: 8;");
             totalRow.setPadding(new Insets(15));
             javafx.scene.image.ImageView wIcon = getIcon("https://img.icons8.com/color/48/bank-cards.png", 24);
-            Text tLabel = new Text("Total Amount"); tLabel.setFont(javafx.scene.text.Font.font("System", 14)); tLabel.setFill(javafx.scene.paint.Color.web("#2c3e50"));
-            
-            // "PAID" label logic
-            boolean isCardPaid = deliveryInfo != null && deliveryInfo.contains("Credit / Debit Card");
-            Text paidLabel = new Text();
-            if (isCardPaid) {
-                paidLabel.setText(" (PAID)");
-                paidLabel.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 14));
-                paidLabel.setFill(javafx.scene.paint.Color.web("#e74c3c")); // Red color
-            }
+            Text tLabel = new Text("Payment Amount"); tLabel.setFont(javafx.scene.text.Font.font("System", 14)); tLabel.setFill(javafx.scene.paint.Color.web("#2c3e50"));
             
             javafx.scene.layout.Region spacer = new javafx.scene.layout.Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+            
+            HBox valBox = new HBox(5);
+            valBox.setAlignment(Pos.CENTER_LEFT);
             Text tValue = new Text(String.format("Rs. %.1f", lastOrder.getTotalPrice()));
             tValue.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 16));
             tValue.setFill(javafx.scene.paint.Color.web("#27ae60"));
+            valBox.getChildren().add(tValue);
+
+            if (isCardPaid) {
+                Text paidLabel = new Text("(PAID)");
+                paidLabel.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 16));
+                paidLabel.setFill(javafx.scene.paint.Color.web("#e74c3c")); // Red color
+                valBox.getChildren().add(paidLabel);
+            }
             
-            totalRow.getChildren().addAll(wIcon, tLabel, paidLabel, spacer, tValue);
+            totalRow.getChildren().addAll(wIcon, tLabel, spacer, valBox);
             orderCard.getChildren().add(totalRow);
         }
 
@@ -2419,7 +2448,13 @@ public class PharmacyApp extends Application {
             Text aLbl = new Text("Address:"); aLbl.setFill(javafx.scene.paint.Color.web("#7f8c8d"));
             Text aVal = new Text(addressStr); aVal.setFill(javafx.scene.paint.Color.web("#2c3e50"));
             Text pLbl = new Text("Payment Method:"); pLbl.setFill(javafx.scene.paint.Color.web("#7f8c8d"));
-            Text pVal = new Text(payStr); pVal.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+            Text pVal = new Text(payStr); 
+            if (payStr.contains("Credit / Debit Card")) {
+                pVal.setText(payStr + " (PAID)");
+                pVal.setFill(javafx.scene.paint.Color.web("#e74c3c"));
+            } else {
+                pVal.setFill(javafx.scene.paint.Color.web("#2c3e50"));
+            }
             
             Text dtLbl = new Text("Date:"); dtLbl.setFill(javafx.scene.paint.Color.web("#7f8c8d"));
             Text dtVal = new Text(dateStr + "   |   Time: " + timeStr); dtVal.setFill(javafx.scene.paint.Color.web("#2c3e50"));
@@ -2433,11 +2468,11 @@ public class PharmacyApp extends Application {
         }
 
         Button browseBtn = new Button("Browse Again");
-        browseBtn.setGraphic(getIcon("https://img.icons8.com/color/48/refresh.png", 16));
+        browseBtn.setGraphic(getIcon("https://img.icons8.com/ios-glyphs/48/ffffff/refresh.png", 16));
         browseBtn.setStyle("-fx-background-color: #4a90e2; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-cursor: hand;");
         browseBtn.setPrefWidth(200);
         browseBtn.setPadding(new Insets(12));
-        browseBtn.setOnAction(e -> { successStage.close(); showMedicineListStage(); });
+        browseBtn.setOnAction(e -> { showMedicineListStage(mainStage); });
 
         Button historyBtn = new Button("View History");
         historyBtn.setGraphic(getIcon("https://img.icons8.com/color/48/order-history.png", 16));
@@ -2445,8 +2480,7 @@ public class PharmacyApp extends Application {
         historyBtn.setPrefWidth(200);
         historyBtn.setPadding(new Insets(12));
         historyBtn.setOnAction(e -> {
-            successStage.close();
-            showOrderHistoryStage(user.getOrderHistoryObservable(), () -> showMedicineListStage());
+            showOrderHistoryStage(user.getOrderHistoryObservable(), (stageToClose) -> showMedicineListStage(stageToClose), mainStage);
         });
 
         Button cancelBtn = new Button("Cancel Order");
@@ -2459,8 +2493,7 @@ public class PharmacyApp extends Application {
                 lastOrder.setStatus("Cancelled");
                 updateOrderInFile(lastOrder);
             }
-            successStage.close();
-            showMedicineListStage();
+            showMedicineListStage(mainStage);
         });
 
         Button logoutBtn = new Button("Logout");
@@ -2468,7 +2501,7 @@ public class PharmacyApp extends Application {
         logoutBtn.setStyle("-fx-background-color: #ffeef0; -fx-text-fill: #ff4757; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-cursor: hand;");
         logoutBtn.setPrefWidth(200);
         logoutBtn.setPadding(new Insets(12));
-        logoutBtn.setOnAction(e -> { successStage.close(); showLoginStage(); });
+        logoutBtn.setOnAction(e -> { showLoginStage(mainStage); });
 
         HBox topBtnRow = new HBox(20, browseBtn, historyBtn);
         topBtnRow.setAlignment(Pos.CENTER);
@@ -2490,6 +2523,7 @@ public class PharmacyApp extends Application {
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         scroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         
         // Ensure scrollpane has a clear background so we see the rootPane image
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-control-inner-background: transparent;");
@@ -2503,8 +2537,7 @@ public class PharmacyApp extends Application {
         rootPane.getChildren().add(alignBox);
 
         Scene scene = new Scene(rootPane, 1000, 600);
-        successStage.setScene(scene);
-        successStage.show();
+        mainStage.setScene(scene);
     }
 
     private VBox createHeaderCell(String text, double width) {

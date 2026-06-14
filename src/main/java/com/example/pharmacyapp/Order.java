@@ -10,11 +10,9 @@ public class Order {
     private List<Medicine> medicines;
     private double totalPrice;
     private String status;
-    private static int nextOrderId = 1;
-
 
     public Order(User user, List<Medicine> medicines) {
-        this.orderId = nextOrderId++;
+        this.orderId = user.getOrderHistoryObservable().size() + 1;
         this.orderDate = new Date();
         this.user = user;
         this.medicines = new java.util.ArrayList<>(medicines);
