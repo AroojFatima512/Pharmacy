@@ -10,18 +10,24 @@ public class User {
     private String name;
     private String address;
     private String contactInfo;
+    private String email;
+    private String password;
+    private List<String> savedAddresses = new ArrayList<>();
     private static List<Medicine> cart;
     private List<Order> orderHistory;
     private ObservableList<Order> orderHistoryObservable = FXCollections.observableArrayList();
     private ObservableList<Medicine> cartObservable = FXCollections.observableArrayList();
 
-    public User(String name, String address, String contactInfo) {
+    public User(String name, String address, String contactInfo, String email, String password) {
         this.name = name;
         this.address = address;
         this.contactInfo = contactInfo;
-        this.cart = new ArrayList<>();
+        this.email = email;
+        this.password = password;
+        cart = new ArrayList<>();
         this.orderHistory = new ArrayList<>();
         this.orderHistoryObservable = FXCollections.observableArrayList();
+        this.cartObservable = FXCollections.observableArrayList(cart);
     }
 
     public ObservableList<Medicine> getCartObservable() {
@@ -55,6 +61,16 @@ public class User {
         this.address = address;
     }
 
+    public List<String> getSavedAddresses() {
+        return savedAddresses;
+    }
+
+    public void addSavedAddress(String newAddress) {
+        if (!savedAddresses.contains(newAddress)) {
+            savedAddresses.add(newAddress);
+        }
+    }
+
     public String getContactInfo() {
         return contactInfo;
     }
@@ -65,6 +81,22 @@ public class User {
 
     public void setOrderHistory(List<Order> orderHistory) {
         this.orderHistory = orderHistory;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public void addToCart(Medicine medicine) {
@@ -88,11 +120,10 @@ public class User {
             // Create a new Order using the current user and the items in the cart
             Order newOrder = new Order(this, cart);
 
-            // Add the new order to the order history
+            // Add the new order to both lists
             orderHistory.add(newOrder);
+            orderHistoryObservable.add(newOrder);
 
-            // Update the order history observable list
-            orderHistoryObservable.setAll(orderHistory);
             cart.clear();
             System.out.println("Order is placed");
         } else {

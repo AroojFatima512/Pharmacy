@@ -17,16 +17,16 @@ public class Order {
         this.orderId = nextOrderId++;
         this.orderDate = new Date();
         this.user = user;
-        this.medicines = medicines;
+        this.medicines = new java.util.ArrayList<>(medicines);
         this.totalPrice = calculateTotalPrice();
-        this.status = "Order is Placed";
+        
+        this.status = "Placed";
     }
-
 
     private double calculateTotalPrice() {
         double total = 0.0;
         for (Medicine medicine : medicines) {
-            total += medicine.getPrice();
+            total += medicine.getPrice() * medicine.getSelectedQuantity();
         }
         return total;
     }
@@ -55,5 +55,11 @@ public class Order {
         return status;
     }
 
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
+    public void setOrderDate(Date date) {
+        this.orderDate = date;
+    }
 }
